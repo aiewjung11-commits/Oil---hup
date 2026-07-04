@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyPad — บันทึกค่าน้ำมัน</title>
+<meta name="theme-color" content="#0a2d6e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MoneyPad">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADRElEQVR42u3dP0ocUQDH8XliZeFqUBuPEDyBm0ZCqhQaYm+RImkCol4iK6YMgRQeQKy0UIIKq0fwCDZBTLyBhQiSicSNbzPvvfl8sRLc3bz58fszMjGMzX2sgD8x4gjwEKNVFZwCOAcGdY7AOcA5oHOAc0DngFiBWIFYQRniIA3oHNA5oHNArECsQKyAc0DnAOeAzgHUxBHECsQKFFLE7BwOAZwDOgdMWYgViBVwDpiyKEMcbp9D54ApC84BawXEAVMWnAMKKTgHdA6gJg63zyFWIFbAOWDKgnPUuD7bSPbIOvO9logjjM9/SksWpxtZHFyn22uDOHrJyGI9u+PrdDfL7hwhha8clXEn6FDqlyn7dPPlHEO1jf5avid43V8r1TlMWTzsiZ3uVrOf4Fd/tYBznHjxucT7HDqH5pHXTTDqIA7iSF0ceTC7ct7I+15sP2+t3vN44q0pZdy+9aP0UeKDgyOUkf4H0Dl0DlOWNjgHdegcKLpzeDQhkm+U2TmII4o6xApMWSikpmw0fh5/eMqPTy584RzIyXh0DnCOxFPp6P29iPlqyiL1VSxWIFaU038QB2mQhs4xXJ69/Dboj1x9f6dzQOeQBuV1DrGS3P4UK0ifFJ6y/wuNPznyuA8Q8R/uKfv4l6e0t9Y5SrlIOgdMWZiyVVVVo8GUjRMFIcGXEisQK2KFc8CULbB0mLLQOaBzcA7oHDqHWBErYgViRaw0LQ7SECo6B3noHNA5dA6xIlbECsRKO2Plcu/tQK90ub9c/+bU6x3OgaScQ+fIoyg0cJk4B3SOjKZsMvvWf4wfy/RD1q8vVqCQKqTxOofrShucgzp0DpiypqxYEStiBaYs5zBlaeMe04t7uU5Zt88jacOfDoUpiyymJueAtWKtEAdx5NU5XFfa4BzUoZAimt6nlw7+25v92H3VqsOdeXOoc6DMqHH7fKjayPtsFVLWIVZog3NQhykLzsE5dA7a4BzUQRwQKyg+VsLM8omLCFMWA8aK361A54C1AuKAQoqGOwfnAOeAzgFTFpwDOgdSdA63z2HKQqxAIYUpC84BnQOcA6YsxArEClATB2lA54DOAZ0DYgViBWIFnAM6BzgHdA7gd24AOkxDMV4ADNgAAAAASUVORK5CYII=">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#f0f6ff;--card:#fff;--accent:#1a5fd4;--border:#c8daf5;--text:#0d1f3c;--text2:#2a4a7f;--grad1:#0a2d6e;--grad2:#1a5fd4;--red:#c62828}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+h1,h2,button{font-family:'Prompt',sans-serif}
+.topbar{background:linear-gradient(135deg,var(--grad1),var(--grad2));color:#fff;padding:16px 20px}
+.topbar h1{font-size:1.25rem;font-weight:600}
+.topbar .sub{font-size:.8rem;opacity:.85;margin-top:2px}
+.sync-chip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;margin-top:6px}
+.sync-chip .dot{width:8px;height:8px;border-radius:50%;background:#9aa9c4}
+.sync-chip.on .dot{background:#4ade80}
+.sync-chip.off .dot{background:#f87171}
+.container{max-width:640px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(26,95,212,.06)}
+.card h2{font-size:1rem;color:var(--grad1);margin-bottom:12px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center}
+.stat .num{font-family:'Prompt';font-size:1.15rem;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:.7rem;color:var(--text2);margin-top:2px}
+label.fld{display:block;font-size:.75rem;color:var(--text2);margin-bottom:8px}
+input,select{font-family:'Sarabun';font-size:1rem;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fbfdff;color:var(--text);width:100%;margin-top:3px}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+#amount{font-size:1.6rem;font-family:'Prompt';font-weight:600;text-align:center;color:var(--grad1)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font-size:.95rem;font-weight:500;padding:12px 18px;border:none;border-radius:8px;cursor:pointer}
+.btn-primary{background:var(--accent);color:#fff;width:100%;margin-top:4px}
+.btn-primary:active{background:var(--grad1)}
+.btn-danger{background:#fdecec;color:var(--red);border:1px solid #f3c4c4;padding:4px 10px;font-size:.75rem;width:auto}
+.month-head{font-family:'Prompt';font-weight:600;color:var(--grad1);font-size:.9rem;padding:10px 4px 6px;border-bottom:2px solid var(--border);display:flex;justify-content:space-between}
+.list-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #e7f0fd}
+.list-item .info{flex:1}
+.list-item .amt{font-family:'Prompt';font-weight:600;color:var(--grad1)}
+.list-item .meta{font-size:.76rem;color:var(--text2)}
+.badge{font-size:.68rem;padding:2px 8px;border-radius:20px;background:#eaf2ff;color:var(--accent);font-weight:600}
+.empty{text-align:center;color:var(--text2);font-size:.85rem;padding:20px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>⛽ MoneyPad — บันทึกค่าน้ำมัน</h1>
+  <div class="sub">จดง่าย เห็นกันทั้งบ้าน</div>
+  <div class="sync-chip" id="sync-chip"><span class="dot"></span><span id="sync-text">กำลังเชื่อมต่อ…</span></div>
+</div>
+<div class="container">
+
+<div class="stat-grid">
+  <div class="stat"><div class="num" id="st-month">฿0</div><div class="lbl">เดือนนี้</div></div>
+  <div class="stat"><div class="num" id="st-count">0</div><div class="lbl">ครั้ง/เดือนนี้</div></div>
+  <div class="stat"><div class="num" id="st-avg">฿0</div><div class="lbl">เฉลี่ย/ครั้ง</div></div>
+</div>
+
+<div class="card">
+  <h2>➕ เติมน้ำมัน</h2>
+  <label class="fld">จำนวนเงิน (บาท)<input id="amount" type="number" inputmode="decimal" placeholder="0"></label>
+  <div class="row2">
+    <label class="fld">วันที่<input id="fdate" type="date"></label>
+    <label class="fld">ใครเติม<select id="who"><option>พ่อ</option><option>แม่</option></select></label>
+  </div>
+  <label class="fld">หมายเหตุ (ปั๊ม/รถ ไม่ใส่ก็ได้)<input id="note" placeholder="เช่น ปตท. เต็มถัง"></label>
+  <button class="btn-primary" onclick="addFuel()">💾 บันทึก</button>
+</div>
+
+<div class="card">
+  <h2>📑 ประวัติการเติม</h2>
+  <div id="list"></div>
+</div>
+
+</div>
+<script>
+/* ====== Firebase (โปรเจกต์เดียวกับ Family Hub) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCszvZXe1VJcZzQmWWRrkLs1YGhbzvuxxA",
+  authDomain: "family---hup.firebaseapp.com",
+  databaseURL: "https://family---hup-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "family---hup",
+  storageBucket: "family---hup.firebasestorage.app",
+  messagingSenderId: "1074541803511",
+  appId: "1:1074541803511:web:8b7caa3d4e56117b56e0f2"
+};
+const FAMILY_CODE = "baan-aiew-2026";
+/* ==================================================== */
+const KEY='money_pad_fuel_v1';
+let records=JSON.parse(localStorage.getItem(KEY)||'[]');
+const thMonths=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const fmtBaht=n=>'฿'+Number(n).toLocaleString('th-TH');
+
+let fbRef=null,applyingRemote=false;
+function setSync(state,text){
+  document.getElementById('sync-chip').className='sync-chip '+state;
+  document.getElementById('sync-text').textContent=text;
+}
+if(typeof firebase!=='undefined'){
+  try{
+    firebase.initializeApp(firebaseConfig);
+    fbRef=firebase.database().ref('moneypad/'+FAMILY_CODE+'/fuel');
+    fbRef.on('value',snap=>{
+      const remote=snap.val();
+      if(remote){
+        applyingRemote=true;
+        records=Array.isArray(remote)?remote.filter(Boolean):Object.values(remote);
+        localStorage.setItem(KEY,JSON.stringify(records));
+        render();
+        applyingRemote=false;
+      }else if(records.length){
+        fbRef.set(records).catch(err=>alert('ซิงค์ไม่สำเร็จ:\n'+err.message));
+      }
+    });
+    firebase.database().ref('.info/connected').on('value',s=>{
+      setSync(s.val()?'on':'off', s.val()?'🔥 ซิงค์ทั้งบ้านแล้ว':'ออฟไลน์ — จะซิงค์เมื่อต่อเน็ต');
+    });
+  }catch(e){setSync('off','Firebase ตั้งค่าไม่ถูกต้อง')}
+}else{
+  setSync('','โหมดเครื่องนี้เท่านั้น');
+}
+const save=()=>{
+  localStorage.setItem(KEY,JSON.stringify(records));
+  if(fbRef && !applyingRemote){
+    try{ fbRef.set(records).catch(err=>alert('บันทึกในเครื่องแล้ว แต่ซิงค์ไม่สำเร็จ:\n'+err.message)); }
+    catch(err){ alert('บันทึกในเครื่องแล้ว แต่ซิงค์ไม่สำเร็จ:\n'+err.message); }
+  }
+};
+
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+document.getElementById('fdate').value=todayISO();
+
+function addFuel(){
+ try{
+  const amount=parseFloat(document.getElementById('amount').value);
+  const date=document.getElementById('fdate').value;
+  if(!amount||amount<=0){alert('ใส่จำนวนเงินก่อนนะครับ');return}
+  if(!date){alert('เลือกวันที่ก่อนนะครับ');return}
+  records.push({id:Date.now(),amount,date,who:document.getElementById('who').value,note:document.getElementById('note').value.trim()});
+  save();render();
+  document.getElementById('amount').value='';document.getElementById('note').value='';
+  alert('บันทึกแล้ว ✓ '+fmtBaht(amount));
+ }catch(err){alert('เกิดข้อผิดพลาด: '+err.message)}
+}
+function delFuel(id){
+  if(!confirm('ลบรายการนี้?'))return;
+  records=records.filter(x=>x.id!==id);
+  save();render();
+}
+
+function render(){
+  const now=new Date();
+  const mk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthRecs=records.filter(r=>r.date.startsWith(mk));
+  const total=monthRecs.reduce((s,r)=>s+r.amount,0);
+  document.getElementById('st-month').textContent=fmtBaht(total);
+  document.getElementById('st-count').textContent=monthRecs.length;
+  document.getElementById('st-avg').textContent=monthRecs.length?fmtBaht(Math.round(total/monthRecs.length)):'฿0';
+
+  const list=document.getElementById('list');
+  if(!records.length){list.innerHTML='<div class="empty">ยังไม่มีรายการ — เติมน้ำมันครั้งแรกบันทึกได้เลย ⛽</div>';return}
+  const sorted=[...records].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  const groups={};
+  sorted.forEach(r=>{const g=r.date.slice(0,7);(groups[g]=groups[g]||[]).push(r)});
+  list.innerHTML=Object.keys(groups).sort().reverse().map(g=>{
+    const [y,m]=g.split('-');
+    const gTotal=groups[g].reduce((s,r)=>s+r.amount,0);
+    return '<div class="month-head"><span>'+thMonths[m-1]+' '+(Number(y)+543)+'</span><span>'+fmtBaht(gTotal)+'</span></div>'+
+      groups[g].map(r=>{
+        const d=new Date(r.date+'T00:00');
+        return '<div class="list-item"><div class="info"><div class="amt">'+fmtBaht(r.amount)+' <span class="badge">'+r.who+'</span></div>'+
+        '<div class="meta">'+d.getDate()+' '+thMonths[d.getMonth()]+(r.note?' · '+r.note:'')+'</div></div>'+
+        '<button class="btn-danger" onclick="delFuel('+r.id+')">ลบ</button></div>';
+      }).join('');
+  }).join('');
+}
+render();
+
+/* ====== PWA ====== */
+const ICON192='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAADjElEQVR42u3csU4UURiG4T1kKwsJRmi8BOMVQGWMjY0Y6C0stLEAvQrsjYmFF2CspJAYKZZb4BJoDFG4AwuzhsSEZRnOnvOf87zZioRhOPPt978zk5l068HrEXBdliwBhjAejZJVgAZCqQZKGggaCBwIGggcCNBA4EDQQOihgRIHggYCB4IGQo8NxIFghMEIgwZClw5kEaCBwIGggdBfgFwGggYCB0LY03gNBA0EDgQNBA4EGGEwwqCB0IcDWQQMCFCSIHAgcCBwIGgggANBA4EDQQMBHAgaCBwIjQbIvTAYYTDCoIHgNB7QQOBA/zg/ehtiHZc39voMULq9vldrdN6EW83ljXcCJDpiNJ9Ep6o+0dMz/QKkTj6uA2Vqdg1UpH4mu20s6/lkt5cGUkA6qJEGOpvstLSyZ5MdDgQtNPNCogRJkAAJUMEAxePe8+OyO3Dy6b4vxzRA0V5xVzw9f/fhShnq4PWBS9ITfU84EAfSQOBAyFBAGgi4vIE8F5bTgHq4DiQ/HNpZmARxIGgg9NdAHCgjvw9fDd/IysP3GgjN1hgHggZqew7+eHlhnH2o0IEEKNA0q+5gGWEwwgh1wQCJj/hwoEq58+jj9X7x1/cXHAgcCNXNHA2E1hqIA2UsoFT7BjUQigeonlc9zKaeR0Kvtic3vhTVvZ0jXgPVkCGPNsd2oDDHjwMBsxrIdaCcFVT9BgcHKDmNzzjBUuUbNMJghBlhkUeYBkJ/p/GBJMhpPMCBOJAGAgfiQBwI4EAcSAOhmgZyLyynArkXBnAgDqSBUG0DcaCcElT7Bo0wI8wIA4nG/IVxur817+ZO97f//+HdJ5/LOpDDHGeC1TfWNJAEcSBoIA0UtIHGLgNlPLCpnb+igTQQB0KNDmSGmWEaCByIA3EgcCBwICPMCDPCQKLRxa0M+Sl1ZFeffo2fn9E4SVDG/LS/thwIHKh3ByobIPmRHw0kQRwIGggcCPKjgSSIAyHKV2R189uC/+TPL497XvG1ZwccCMbaNEDuhS08P00tOIlWQUaY/GggCXIajx7RQBqIA8mPBpIgDgQOBA007z+ztn3okEIDoVCAxAcaCAUDJD/QQBAghMSFRAx1IA0EDQQOBA0EDgRoICyugTwXhoEjzCLAWRg4EDQQOBCggcCBoIHQhwMJEIwwGGEIGSDxAQcCBwIHggYCOBA0EDgQNBDAgaCBwIHQKH8Ag9dEWslbE4sAAAAASUVORK5CYII=';
+const ICON512='data:image/png;base64,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';
+const manifest={name:'MoneyPad — ค่าน้ำมัน',short_name:'MoneyPad',start_url:location.href.split('#')[0],display:'standalone',background_color:'#f0f6ff',theme_color:'#0a2d6e',
+  icons:[{src:ICON192,sizes:'192x192',type:'image/png'},{src:ICON512,sizes:'512x512',type:'image/png'}]};
+const ml=document.createElement('link');ml.rel='manifest';
+ml.href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/json'}));
+document.head.appendChild(ml);
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  const sw="const C='moneypad-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.add('./')));self.skipWaiting()});self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||!e.request.url.startsWith(self.location.origin))return;e.respondWith(fetch(e.request).then(r=>{const cl=r.clone();caches.open(C).then(c=>c.put(e.request,cl)).catch(()=>{});return r;}).catch(()=>caches.match(e.request)));});";
+  try{navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'text/javascript'})),{scope:'./'}).catch(()=>{});}catch(e){}
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+</script>
+</body>
+</html>
